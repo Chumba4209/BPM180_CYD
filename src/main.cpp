@@ -1,10 +1,9 @@
 #include <Arduino.h>
 #include <TFT_eSPI.h>
 #include <lvgl.h>
-#include <DHT.h>
-#define DHT_PIN 27
-#define DHT_TYPE DHT22
-DHT dht(DHT_PIN, DHT_TYPE);
+#include <Wire.h>
+#include <Adafruit_BMP085.h>
+Adafruit_BMP085 bmp;
 
 #define SCREEN_WIDTH  320
 #define SCREEN_HEIGHT 240
@@ -16,15 +15,15 @@ TFT_eSPI tft = TFT_eSPI();
 
 // Panel containers 
 lv_obj_t *temp_panel;
-lv_obj_t *humidity_panel;
+lv_obj_t *pressure_panel;
 lv_obj_t *chart_panel;
 lv_obj_t *temp_arc;
-lv_obj_t *humidity_arc;
+lv_obj_t *pressure_arc;
 lv_obj_t *temp_value_label;
-lv_obj_t *humidity_value_label;
+lv_obj_t *pressure_value_label;
 lv_obj_t *chart;
 lv_chart_series_t *temp_series;
-lv_chart_series_t *humidity_series;
+lv_chart_series_t *pressure_series;
 
 
 
@@ -51,7 +50,7 @@ void create_dashboard() {
 
     // Title label 
     lv_obj_t *title = lv_label_create(scr);
-    lv_label_set_text(title, "DHT22");
+    lv_label_set_text(title, "BMP180");
     lv_obj_set_style_text_font(title, &lv_font_montserrat_22, 0);
     lv_obj_set_style_text_color(title, lv_color_hex(0x333333), 0);
     lv_obj_align(title, LV_ALIGN_TOP_MID, 0, 6);
@@ -86,8 +85,8 @@ void create_dashboard() {
     temp_series = lv_chart_add_series(chart, lv_color_hex(0x4CAF50), 
                                       LV_CHART_AXIS_PRIMARY_Y);
 
-    // Humidity series - blue
-    humidity_series = lv_chart_add_series(chart, lv_color_hex(0x2196F3), 
+    // pressure series - blue
+    pressure_series = lv_chart_add_series(chart, lv_color_hex(0x2196F3), 
                                           LV_CHART_AXIS_PRIMARY_Y);
 
     // Y axis labels (static, right side of chart)
@@ -128,7 +127,7 @@ lv_obj_align(y_label_bot, LV_ALIGN_BOTTOM_RIGHT, -2, -8);
     // Pre-fill with demo data so chart is not empty
     for(int i = 0; i < 20; i++) {
         lv_chart_set_next_value(chart, temp_series, 20 + (i % 5));
-        lv_chart_set_next_value(chart, humidity_series, 55 + (i % 8));
+        lv_chart_set_next_value(chart, pressure_series, 55 + (i % 8));
     }
 
     // Temp panel 
@@ -168,49 +167,50 @@ lv_obj_align(y_label_bot, LV_ALIGN_BOTTOM_RIGHT, -2, -8);
     lv_obj_set_style_text_color(temp_value_label, lv_color_hex(0x333333), 0);
     lv_obj_align_to(temp_value_label, temp_arc, LV_ALIGN_CENTER, -8, 0);
 
-    // Humidity panel 
-    humidity_panel = lv_obj_create(scr);
-    lv_obj_set_size(humidity_panel, 158, 100);
-    lv_obj_align(humidity_panel, LV_ALIGN_BOTTOM_RIGHT, -1, -1);
-    lv_obj_set_style_bg_color(humidity_panel, lv_color_white(), 0);
-    lv_obj_set_style_border_width(humidity_panel, 1, 0);
-    lv_obj_set_style_border_color(humidity_panel, lv_color_hex(0xDDDDDD), 0);
-    lv_obj_set_style_radius(humidity_panel, 6, 0);
-    lv_obj_set_style_pad_all(humidity_panel, 4, 0);
+    // pressure panel 
+    pressure_panel = lv_obj_create(scr);
+    lv_obj_set_size(pressure_panel, 158, 100);
+    lv_obj_align(pressure_panel, LV_ALIGN_BOTTOM_RIGHT, -1, -1);
+    lv_obj_set_style_bg_color(pressure_panel, lv_color_white(), 0);
+    lv_obj_set_style_border_width(pressure_panel, 1, 0);
+    lv_obj_set_style_border_color(pressure_panel, lv_color_hex(0xDDDDDD), 0);
+    lv_obj_set_style_radius(pressure_panel, 6, 0);
+    lv_obj_set_style_pad_all(pressure_panel, 4, 0);
 
-    lv_obj_t *hum_title = lv_label_create(humidity_panel);
-    lv_label_set_text(hum_title, "Humidity");
+    lv_obj_t *hum_title = lv_label_create(pressure_panel);
+    lv_label_set_text(hum_title, "Pressure");
     lv_obj_set_style_text_font(hum_title, &lv_font_montserrat_14, 0);
     lv_obj_set_style_text_color(hum_title, lv_color_hex(0x333333), 0);
     lv_obj_align(hum_title, LV_ALIGN_TOP_LEFT, 4, 2);
 
-    // Humidity arc gauge
-    humidity_arc = lv_arc_create(humidity_panel);
-    lv_obj_set_size(humidity_arc, 70, 70);
-    lv_arc_set_rotation(humidity_arc, 135);
-    lv_arc_set_bg_angles(humidity_arc, 0, 270);
-    lv_arc_set_range(humidity_arc, 0, 100);
-    lv_arc_set_value(humidity_arc, 60);
-    lv_obj_remove_style(humidity_arc, NULL, LV_PART_KNOB);
-    lv_obj_set_style_arc_color(humidity_arc, lv_color_hex(0x2196F3), LV_PART_INDICATOR);
-    lv_obj_set_style_arc_color(humidity_arc, lv_color_hex(0xDDDDDD), LV_PART_MAIN);
-    lv_obj_set_style_arc_width(humidity_arc, 8, LV_PART_INDICATOR);
-    lv_obj_set_style_arc_width(humidity_arc, 8, LV_PART_MAIN);
-    lv_obj_align(humidity_arc, LV_ALIGN_CENTER, 10, 8);
+    // pressure arc gauge
+    pressure_arc = lv_arc_create(pressure_panel);
+    lv_obj_set_size(pressure_arc, 70, 70);
+    lv_arc_set_rotation(pressure_arc, 135);
+    lv_arc_set_bg_angles(pressure_arc, 0, 270);
+    lv_arc_set_range(pressure_arc, 800, 1100);
+    lv_arc_set_value(pressure_arc, 811);
+    lv_obj_remove_style(pressure_arc, NULL, LV_PART_KNOB);
+    lv_obj_set_style_arc_color(pressure_arc, lv_color_hex(0x2196F3), LV_PART_INDICATOR);
+    lv_obj_set_style_arc_color(pressure_arc, lv_color_hex(0xDDDDDD), LV_PART_MAIN);
+    lv_obj_set_style_arc_width(pressure_arc, 8, LV_PART_INDICATOR);
+    lv_obj_set_style_arc_width(pressure_arc, 8, LV_PART_MAIN);
+    lv_obj_align(pressure_arc, LV_ALIGN_CENTER, 10, 8);
 
-    // Humidity value label (inside arc)
-    humidity_value_label = lv_label_create(humidity_panel);
-    lv_label_set_text(humidity_value_label, "60%");
-    lv_obj_set_style_text_font(humidity_value_label, &lv_font_montserrat_14, 0);
-    lv_obj_set_style_text_color(humidity_value_label, lv_color_hex(0x333333), 0);
-    lv_obj_align_to(humidity_value_label, humidity_arc, LV_ALIGN_CENTER, 0, 0);
+    // pressure value label (inside arc)
+    pressure_value_label = lv_label_create(pressure_panel);
+    lv_label_set_text(pressure_value_label, "60%");
+    lv_obj_set_style_text_font(pressure_value_label, &lv_font_montserrat_14, 0);
+    lv_obj_set_style_text_color(pressure_value_label, lv_color_hex(0x333333), 0);
+    lv_obj_align_to(pressure_value_label, pressure_arc, LV_ALIGN_CENTER, 0, 0);
 
     
 }
 
 void setup() {
     Serial.begin(115200);
-    dht.begin();
+    Wire.begin(27, 22);
+    bmp.begin();
 
     tft.init();
     tft.setRotation(1);
@@ -227,7 +227,6 @@ void setup() {
 
     create_dashboard();
 }
-
 void loop() {
     lv_timer_handler();
 
@@ -235,38 +234,38 @@ void loop() {
     if (millis() - last_update > 2000) {
         last_update = millis();
 
-        float real_temp = dht.readTemperature();
-        float real_hum  = dht.readHumidity();
+        float real_temp = bmp.readTemperature();
+        float real_pressure = bmp.readPressure() / 100.0;
 
-        if (!isnan(real_temp) && !isnan(real_hum)) {
+        if (real_temp > -40 && real_temp < 80) {
             // Update chart
             lv_chart_set_next_value(chart, temp_series, (int)real_temp);
-            lv_chart_set_next_value(chart, humidity_series, (int)real_hum);
+            lv_chart_set_next_value(chart, pressure_series, (int)real_pressure);
             lv_chart_refresh(chart);
 
             // Update arc gauges
             lv_arc_set_value(temp_arc, (int)real_temp);
-            lv_arc_set_value(humidity_arc, (int)real_hum);
+            lv_arc_set_value(pressure_arc, (int)real_pressure);
 
             // Update value labels
             char buf[16];
             snprintf(buf, sizeof(buf), "%.1f°C", real_temp);
             lv_label_set_text(temp_value_label, buf);
-            snprintf(buf, sizeof(buf), "%.0f%%", real_hum);
-            lv_label_set_text(humidity_value_label, buf);
+            snprintf(buf, sizeof(buf), "%.0fhPa", real_pressure);
+            lv_label_set_text(pressure_value_label, buf);
 
-            // Alert colors for temp gauge
+            // Temp alert colors
             if (real_temp > 35.0 || real_temp < 10.0) {
                 lv_obj_set_style_arc_color(temp_arc, lv_color_hex(0xE53935), LV_PART_INDICATOR);
             } else {
                 lv_obj_set_style_arc_color(temp_arc, lv_color_hex(0x4CAF50), LV_PART_INDICATOR);
             }
 
-            // Alert colors for humidity gauge
-            if (real_hum > 80.0 || real_hum < 20.0) {
-                lv_obj_set_style_arc_color(humidity_arc, lv_color_hex(0xE53935), LV_PART_INDICATOR);
+            // Pressure alert colors (normal range 980-1020 hPa)
+            if (real_pressure < 790 || real_pressure > 830) {
+                lv_obj_set_style_arc_color(pressure_arc, lv_color_hex(0xE53935), LV_PART_INDICATOR);
             } else {
-                lv_obj_set_style_arc_color(humidity_arc, lv_color_hex(0x2196F3), LV_PART_INDICATOR);
+                lv_obj_set_style_arc_color(pressure_arc, lv_color_hex(0x2196F3), LV_PART_INDICATOR);
             }
         }
     }
