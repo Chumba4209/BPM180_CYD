@@ -73,7 +73,7 @@ void create_dashboard() {
     lv_obj_center(chart);
     lv_chart_set_type(chart, LV_CHART_TYPE_LINE);
     lv_chart_set_point_count(chart, 20);
-    lv_chart_set_range(chart, LV_CHART_AXIS_PRIMARY_Y, 0, 100);
+    lv_chart_set_range(chart, LV_CHART_AXIS_PRIMARY_Y, 0, 900);
 
     // Style the chart
     lv_obj_set_style_bg_color(chart, lv_color_white(), 0);
@@ -91,13 +91,13 @@ void create_dashboard() {
 
     // Y axis labels (static, right side of chart)
 lv_obj_t *y_label_top = lv_label_create(chart_panel);
-lv_label_set_text(y_label_top, "100");
+lv_label_set_text(y_label_top, "900");
 lv_obj_set_style_text_font(y_label_top, &lv_font_montserrat_14, 0);
 lv_obj_set_style_text_color(y_label_top, lv_color_hex(0x999999), 0);
 lv_obj_align(y_label_top, LV_ALIGN_TOP_RIGHT, 5, 2);
 
 lv_obj_t *y_label_mid = lv_label_create(chart_panel);
-lv_label_set_text(y_label_mid, "50");
+lv_label_set_text(y_label_mid, "450");
 lv_obj_set_style_text_font(y_label_mid, &lv_font_montserrat_14, 0);
 lv_obj_set_style_text_color(y_label_mid, lv_color_hex(0x999999), 0);
 lv_obj_align(y_label_mid, LV_ALIGN_RIGHT_MID, 5, 0);
@@ -117,18 +117,18 @@ lv_obj_align(y_label_bot, LV_ALIGN_BOTTOM_RIGHT, -2, -8);
     lv_obj_set_style_text_font(legend_t, &lv_font_montserrat_14, 0);
     lv_obj_align(legend_t, LV_ALIGN_TOP_LEFT, 4, 2);
 
-    // Legend - H label (blue)
+    // Legend - P label (blue)
     lv_obj_t *legend_h = lv_label_create(chart_panel);
-    lv_label_set_text(legend_h, "H");
+    lv_label_set_text(legend_h, "P");
     lv_obj_set_style_text_color(legend_h, lv_color_hex(0x2196F3), 0);
     lv_obj_set_style_text_font(legend_h, &lv_font_montserrat_14, 0);
     lv_obj_align(legend_h, LV_ALIGN_TOP_LEFT, 20, 2);
                                           
     // Pre-fill with demo data so chart is not empty
-    for(int i = 0; i < 20; i++) {
-        lv_chart_set_next_value(chart, temp_series, 20 + (i % 5));
-        lv_chart_set_next_value(chart, pressure_series, 55 + (i % 8));
-    }
+    // for(int i = 0; i < 20; i++) {
+    //     lv_chart_set_next_value(chart, temp_series, 20 + (i % 5));
+    //     lv_chart_set_next_value(chart, pressure_series, 811 + (i % 8));
+    // }
 
     // Temp panel 
     temp_panel = lv_obj_create(scr);
@@ -188,7 +188,7 @@ lv_obj_align(y_label_bot, LV_ALIGN_BOTTOM_RIGHT, -2, -8);
     lv_obj_set_size(pressure_arc, 70, 70);
     lv_arc_set_rotation(pressure_arc, 135);
     lv_arc_set_bg_angles(pressure_arc, 0, 270);
-    lv_arc_set_range(pressure_arc, 800, 1100);
+    lv_arc_set_range(pressure_arc, 750, 850);
     lv_arc_set_value(pressure_arc, 811);
     lv_obj_remove_style(pressure_arc, NULL, LV_PART_KNOB);
     lv_obj_set_style_arc_color(pressure_arc, lv_color_hex(0x2196F3), LV_PART_INDICATOR);
