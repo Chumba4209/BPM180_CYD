@@ -23,6 +23,8 @@ lv_obj_t *temp_value_label;
 lv_obj_t *pressure_value_label;
 lv_obj_t *chart;
 lv_chart_series_t *temp_series;
+// lv_chart_series_t *pressure_series;
+lv_obj_t *pressure_chart;
 lv_chart_series_t *pressure_series;
 
 
@@ -57,78 +59,126 @@ void create_dashboard() {
 
 
     // Chart panel 
-    chart_panel = lv_obj_create(scr);
-    lv_obj_set_size(chart_panel, 320, 120);
-    lv_obj_align(chart_panel, LV_ALIGN_TOP_MID, 0, 35);
-    lv_obj_set_style_bg_color(chart_panel, lv_color_white(), 0);
-    lv_obj_set_style_border_width(chart_panel, 1, 0);
-    lv_obj_set_style_border_color(chart_panel, lv_color_hex(0xDDDDDD), 0);
-    lv_obj_set_style_radius(chart_panel, 6, 0);
-    lv_obj_set_style_pad_all(chart_panel, 4, 0);
-    lv_obj_set_scroll_dir(chart_panel, LV_DIR_NONE);
+    //  Left graph panel (Temperature) ─
+    lv_obj_t *temp_chart_panel = lv_obj_create(scr);
+    lv_obj_set_size(temp_chart_panel, 159, 120);
+    lv_obj_align(temp_chart_panel, LV_ALIGN_TOP_LEFT, 0, 35);
+    lv_obj_set_style_bg_color(temp_chart_panel, lv_color_white(), 0);
+    lv_obj_set_style_border_width(temp_chart_panel, 1, 0);
+    lv_obj_set_style_border_color(temp_chart_panel, lv_color_hex(0xDDDDDD), 0);
+    lv_obj_set_style_radius(temp_chart_panel, 6, 0);
+    lv_obj_set_style_pad_all(temp_chart_panel, 4, 0);
+    lv_obj_set_scroll_dir(temp_chart_panel, LV_DIR_NONE);
 
-    // Create chart inside panel
-    chart = lv_chart_create(chart_panel);
-    lv_obj_set_size(chart, 300, 100);
-    lv_obj_center(chart);
+    // T label
+    lv_obj_t *t_label = lv_label_create(temp_chart_panel);
+    lv_label_set_text(t_label, "T");
+    lv_obj_set_style_text_font(t_label, &lv_font_montserrat_14, 0);
+    lv_obj_set_style_text_color(t_label, lv_color_hex(0x4CAF50), 0);
+    lv_obj_align(t_label, LV_ALIGN_TOP_LEFT, 2, 0);
+
+    // Temp chart
+    chart = lv_chart_create(temp_chart_panel);
+    lv_obj_set_size(chart, 140, 90);
+    lv_obj_align(chart, LV_ALIGN_BOTTOM_MID, 0, 0);
     lv_chart_set_type(chart, LV_CHART_TYPE_LINE);
     lv_chart_set_point_count(chart, 20);
-    lv_chart_set_range(chart, LV_CHART_AXIS_PRIMARY_Y, 0, 900);
-
-    // Style the chart
+    lv_chart_set_range(chart, LV_CHART_AXIS_PRIMARY_Y, 22, 28);
+    lv_chart_set_div_line_count(chart, 4, 5);
     lv_obj_set_style_bg_color(chart, lv_color_white(), 0);
     lv_obj_set_style_border_width(chart, 0, 0);
     lv_obj_set_style_line_color(chart, lv_color_hex(0xEEEEEE), LV_PART_MAIN);
-    lv_obj_set_style_size(chart, 0, 0, LV_PART_INDICATOR); // hide dots
+    lv_obj_set_style_size(chart, 0, 0, LV_PART_INDICATOR);
 
-    // Temp series - green
-    temp_series = lv_chart_add_series(chart, lv_color_hex(0x4CAF50), 
+    temp_series = lv_chart_add_series(chart, lv_color_hex(0x4CAF50),
                                       LV_CHART_AXIS_PRIMARY_Y);
 
-    // pressure series - blue
-    pressure_series = lv_chart_add_series(chart, lv_color_hex(0x2196F3), 
+    // Pre-fill temp data
+    for(int i = 0; i < 20; i++) {
+        lv_chart_set_next_value(chart, temp_series, 25);
+    }
+
+    //  Right graph panel (Pressure) 
+    lv_obj_t *pressure_chart_panel = lv_obj_create(scr);
+    lv_obj_set_size(pressure_chart_panel, 159, 120);
+    lv_obj_align(pressure_chart_panel, LV_ALIGN_TOP_RIGHT, 0, 35);
+    lv_obj_set_style_bg_color(pressure_chart_panel, lv_color_white(), 0);
+    lv_obj_set_style_border_width(pressure_chart_panel, 1, 0);
+    lv_obj_set_style_border_color(pressure_chart_panel, lv_color_hex(0xDDDDDD), 0);
+    lv_obj_set_style_radius(pressure_chart_panel, 6, 0);
+    lv_obj_set_style_pad_all(pressure_chart_panel, 4, 0);
+    lv_obj_set_scroll_dir(pressure_chart_panel, LV_DIR_NONE);
+
+    // P label
+    lv_obj_t *p_label = lv_label_create(pressure_chart_panel);
+    lv_label_set_text(p_label, "P");
+    lv_obj_set_style_text_font(p_label, &lv_font_montserrat_14, 0);
+    lv_obj_set_style_text_color(p_label, lv_color_hex(0x2196F3), 0);
+    lv_obj_align(p_label, LV_ALIGN_TOP_LEFT, 2, 0);
+
+    // Pressure chart
+    pressure_chart = lv_chart_create(pressure_chart_panel);
+    lv_obj_set_size(pressure_chart, 140, 90);
+    lv_obj_align(pressure_chart, LV_ALIGN_BOTTOM_MID, 0, 0);
+    lv_chart_set_type(pressure_chart, LV_CHART_TYPE_LINE);
+    lv_chart_set_point_count(pressure_chart, 20);
+    lv_chart_set_range(pressure_chart, LV_CHART_AXIS_PRIMARY_Y, 806, 816);
+    lv_chart_set_div_line_count(pressure_chart, 4, 5);
+    lv_obj_set_style_bg_color(pressure_chart, lv_color_white(), 0);
+    lv_obj_set_style_border_width(pressure_chart, 0, 0);
+    lv_obj_set_style_line_color(pressure_chart, lv_color_hex(0xEEEEEE), LV_PART_MAIN);
+    lv_obj_set_style_size(pressure_chart, 0, 0, LV_PART_INDICATOR);
+
+    pressure_series = lv_chart_add_series(pressure_chart, lv_color_hex(0x2196F3),
                                           LV_CHART_AXIS_PRIMARY_Y);
 
-    // Y axis labels (static, right side of chart)
-lv_obj_t *y_label_top = lv_label_create(chart_panel);
-lv_label_set_text(y_label_top, "900");
-lv_obj_set_style_text_font(y_label_top, &lv_font_montserrat_14, 0);
-lv_obj_set_style_text_color(y_label_top, lv_color_hex(0x999999), 0);
-lv_obj_align(y_label_top, LV_ALIGN_TOP_RIGHT, 5, 2);
+    // Pre-fill pressure data
+    // for(int i = 0; i < 20; i++) {
+    //     lv_chart_set_next_value(pressure_chart, pressure_series, 811);
+    // }
+                 
+    // Pressure graph scale labels
+    lv_obj_t *p_max = lv_label_create(pressure_chart_panel);
+    lv_label_set_text(p_max, "816");
+    lv_obj_set_style_text_font(p_max, &lv_font_montserrat_12, 0);
+    lv_obj_set_style_text_color(p_max, lv_color_hex(0x999999), 0);
+    lv_obj_align(p_max, LV_ALIGN_TOP_RIGHT, 2, 2);
 
-lv_obj_t *y_label_mid = lv_label_create(chart_panel);
-lv_label_set_text(y_label_mid, "450");
-lv_obj_set_style_text_font(y_label_mid, &lv_font_montserrat_14, 0);
-lv_obj_set_style_text_color(y_label_mid, lv_color_hex(0x999999), 0);
-lv_obj_align(y_label_mid, LV_ALIGN_RIGHT_MID, 5, 0);
+    lv_obj_t *p_mid = lv_label_create(pressure_chart_panel);
+    lv_label_set_text(p_mid, "811");
+    lv_obj_set_style_text_font(p_mid, &lv_font_montserrat_12, 0);
+    lv_obj_set_style_text_color(p_mid, lv_color_hex(0x999999), 0);
+    lv_obj_align(p_mid, LV_ALIGN_RIGHT_MID, 2, 0);
 
-lv_obj_t *y_label_bot = lv_label_create(chart_panel);
-lv_label_set_text(y_label_bot, "0");
-lv_obj_set_style_text_font(y_label_bot, &lv_font_montserrat_14, 0);
-lv_obj_set_style_text_color(y_label_bot, lv_color_hex(0x999999), 0);
-lv_obj_align(y_label_bot, LV_ALIGN_BOTTOM_RIGHT, -2, -8);
-
-// Also delete lv_obj_refresh_ext_draw_size line if you added it
-
-    // Legend - T label (green)
-    lv_obj_t *legend_t = lv_label_create(chart_panel);
-    lv_label_set_text(legend_t, "T");
-    lv_obj_set_style_text_color(legend_t, lv_color_hex(0x4CAF50), 0);
-    lv_obj_set_style_text_font(legend_t, &lv_font_montserrat_14, 0);
-    lv_obj_align(legend_t, LV_ALIGN_TOP_LEFT, 4, 2);
-
-    // Legend - P label (blue)
-    lv_obj_t *legend_h = lv_label_create(chart_panel);
-    lv_label_set_text(legend_h, "P");
-    lv_obj_set_style_text_color(legend_h, lv_color_hex(0x2196F3), 0);
-    lv_obj_set_style_text_font(legend_h, &lv_font_montserrat_14, 0);
-    lv_obj_align(legend_h, LV_ALIGN_TOP_LEFT, 20, 2);
-                                          
+    lv_obj_t *p_min = lv_label_create(pressure_chart_panel);
+    lv_label_set_text(p_min, "806");
+    lv_obj_set_style_text_font(p_min, &lv_font_montserrat_12, 0);
+    lv_obj_set_style_text_color(p_min, lv_color_hex(0x999999), 0);
+    lv_obj_align(p_min, LV_ALIGN_BOTTOM_RIGHT, 2, -8);
     // Pre-fill with demo data so chart is not empty
     // for(int i = 0; i < 20; i++) {
     //     lv_chart_set_next_value(chart, temp_series, 20 + (i % 5));
     //     lv_chart_set_next_value(chart, pressure_series, 811 + (i % 8));
     // }
+
+    // Temp graph scale labels
+    lv_obj_t *t_max = lv_label_create(temp_chart_panel);
+    lv_label_set_text(t_max, "28");
+    lv_obj_set_style_text_font(t_max, &lv_font_montserrat_12, 0);
+    lv_obj_set_style_text_color(t_max, lv_color_hex(0x999999), 0);
+    lv_obj_align(t_max, LV_ALIGN_TOP_RIGHT, 2, 2);
+
+    lv_obj_t *t_mid = lv_label_create(temp_chart_panel);
+    lv_label_set_text(t_mid, "25");
+    lv_obj_set_style_text_font(t_mid, &lv_font_montserrat_12, 0);
+    lv_obj_set_style_text_color(t_mid, lv_color_hex(0x999999), 0);
+    lv_obj_align(t_mid, LV_ALIGN_RIGHT_MID, 2, 0);
+
+    lv_obj_t *t_min = lv_label_create(temp_chart_panel);
+    lv_label_set_text(t_min, "22");
+    lv_obj_set_style_text_font(t_min, &lv_font_montserrat_12, 0);
+    lv_obj_set_style_text_color(t_min, lv_color_hex(0x999999), 0);
+    lv_obj_align(t_min, LV_ALIGN_BOTTOM_RIGHT, 2, -8);
 
     // Temp panel 
     temp_panel = lv_obj_create(scr);
@@ -167,6 +217,19 @@ lv_obj_align(y_label_bot, LV_ALIGN_BOTTOM_RIGHT, -2, -8);
     lv_obj_set_style_text_color(temp_value_label, lv_color_hex(0x333333), 0);
     lv_obj_align_to(temp_value_label, temp_arc, LV_ALIGN_CENTER, -8, 0);
 
+    // Temp scale labels
+    lv_obj_t *temp_min = lv_label_create(temp_panel);
+    lv_label_set_text(temp_min, "-10");
+    lv_obj_set_style_text_font(temp_min, &lv_font_montserrat_12, 0);
+    lv_obj_set_style_text_color(temp_min, lv_color_hex(0x999999), 0);
+    lv_obj_align_to(temp_min, temp_arc, LV_ALIGN_OUT_BOTTOM_LEFT, 0, -8);
+
+    lv_obj_t *temp_max = lv_label_create(temp_panel);
+    lv_label_set_text(temp_max, "50");
+    lv_obj_set_style_text_font(temp_max, &lv_font_montserrat_12, 0);
+    lv_obj_set_style_text_color(temp_max, lv_color_hex(0x999999), 0);
+    lv_obj_align_to(temp_max, temp_arc, LV_ALIGN_OUT_BOTTOM_RIGHT, 0, -8);
+
     // pressure panel 
     pressure_panel = lv_obj_create(scr);
     lv_obj_set_size(pressure_panel, 158, 100);
@@ -202,7 +265,20 @@ lv_obj_align(y_label_bot, LV_ALIGN_BOTTOM_RIGHT, -2, -8);
     lv_label_set_text(pressure_value_label, "60%");
     lv_obj_set_style_text_font(pressure_value_label, &lv_font_montserrat_14, 0);
     lv_obj_set_style_text_color(pressure_value_label, lv_color_hex(0x333333), 0);
-    lv_obj_align_to(pressure_value_label, pressure_arc, LV_ALIGN_CENTER, 0, 0);
+    lv_obj_align_to(pressure_value_label, pressure_arc, LV_ALIGN_CENTER, -8, 0);
+
+    // Pressure scale labels
+    lv_obj_t *pres_min = lv_label_create(pressure_panel);
+    lv_label_set_text(pres_min, "780");
+    lv_obj_set_style_text_font(pres_min, &lv_font_montserrat_12, 0);
+    lv_obj_set_style_text_color(pres_min, lv_color_hex(0x999999), 0);
+    lv_obj_align_to(pres_min, pressure_arc, LV_ALIGN_OUT_BOTTOM_LEFT, 0, -8);
+
+    lv_obj_t *pres_max = lv_label_create(pressure_panel);
+    lv_label_set_text(pres_max, "840");
+    lv_obj_set_style_text_font(pres_max, &lv_font_montserrat_12, 0);
+    lv_obj_set_style_text_color(pres_max, lv_color_hex(0x999999), 0);
+    lv_obj_align_to(pres_max, pressure_arc, LV_ALIGN_OUT_BOTTOM_RIGHT, 0, -8);
 
     
 }
@@ -240,8 +316,9 @@ void loop() {
         if (real_temp > -40 && real_temp < 80) {
             // Update chart
             lv_chart_set_next_value(chart, temp_series, (int)real_temp);
-            lv_chart_set_next_value(chart, pressure_series, (int)real_pressure);
+            lv_chart_set_next_value(pressure_chart, pressure_series, (int)real_pressure);
             lv_chart_refresh(chart);
+            lv_chart_refresh(pressure_chart);
 
             // Update arc gauges
             lv_arc_set_value(temp_arc, (int)real_temp);
