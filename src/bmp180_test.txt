@@ -1,0 +1,27 @@
+//use this to test whether the bmp180 sesnor is working 
+
+#include <Arduino.h>
+#include <Wire.h>
+#include <Adafruit_BMP085.h>
+
+Adafruit_BMP085 bmp;
+
+void setup() {
+    Serial.begin(115200);
+    Wire.begin(27, 22);
+    if (!bmp.begin()) {
+        Serial.println("BMP180 not found! Check wiring.");
+        while (1);
+    }
+    Serial.println("BMP180 found!");
+}
+
+void loop() {
+    delay(2000);
+    Serial.print("Temp: "); 
+    Serial.print(bmp.readTemperature()); 
+    Serial.println("°C");
+    Serial.print("Pressure: "); 
+    Serial.print(bmp.readPressure() / 100.0); 
+    Serial.println(" hPa");
+}
